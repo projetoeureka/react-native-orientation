@@ -1,6 +1,7 @@
 package com.github.yamill.orientation;
 
 import android.app.Activity;
+import android.os.Build;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -150,7 +151,14 @@ public class OrientationModule extends ReactContextBaseJavaModule implements Lif
             FLog.e(ReactConstants.TAG, "no activity to register receiver");
             return;
         }
-        activity.registerReceiver(receiver, new IntentFilter("onConfigurationChanged"));
+
+        // After Android API 34 flag indicates whether the broadcast can be received by components of other applications
+        // is required to be set explicitly https://developer.android.com/about/versions/14/behavior-changes-14?hl=pt-br#runtime-receivers-exported
+        if (Build.VERSION.SDK_INT >= 34) {
+            activity.registerReceiver(receiver, new IntentFilter("onConfigurationChanged"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            activity.registerReceiver(receiver, new IntentFilter("onConfigurationChanged"));
+        }
     }
     @Override
     public void onHostPause() {
